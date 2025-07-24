@@ -54,13 +54,22 @@ export function CheckSessionManager({ session, onUpdateSession, onCloseSession }
           diceRoll = rollD20();
         }
 
-        const updatedItem = { ...item, diceRoll, customValue: undefined };
+        // 自动应用当前输入的自定义加值
+        const customBonus = parseInt(customBonuses[itemId]) || 0;
+        const updatedItem = {
+          ...item,
+          diceRoll,
+          customValue: undefined,
+          customBonus
+        };
         return calculateResult(updatedItem);
       }
       return item;
     });
 
     onUpdateSession({ ...session, items: updatedItems });
+    // 清空自定义加值输入框
+    setCustomBonuses(prev => ({ ...prev, [itemId]: '' }));
   };
 
   const rollForAll = () => {
@@ -76,13 +85,22 @@ export function CheckSessionManager({ session, onUpdateSession, onCloseSession }
           diceRoll = rollD20();
         }
 
-        const updatedItem = { ...item, diceRoll, customValue: undefined };
+        // 自动应用当前输入的自定义加值
+        const customBonus = parseInt(customBonuses[item.id]) || 0;
+        const updatedItem = {
+          ...item,
+          diceRoll,
+          customValue: undefined,
+          customBonus
+        };
         return calculateResult(updatedItem);
       }
       return item;
     });
 
     onUpdateSession({ ...session, items: updatedItems });
+    // 清空所有自定义加值输入框
+    setCustomBonuses({});
   };
 
   const setCustomValue = (itemId: string, value: string) => {
@@ -98,7 +116,14 @@ export function CheckSessionManager({ session, onUpdateSession, onCloseSession }
 
     const updatedItems = session.items.map(item => {
       if (item.id === itemId) {
-        const updatedItem = { ...item, customValue: value, diceRoll: undefined };
+        // 自动应用当前输入的自定义加值
+        const customBonus = parseInt(customBonuses[itemId]) || 0;
+        const updatedItem = {
+          ...item,
+          customValue: value,
+          diceRoll: undefined,
+          customBonus
+        };
         return calculateResult(updatedItem);
       }
       return item;
@@ -106,25 +131,12 @@ export function CheckSessionManager({ session, onUpdateSession, onCloseSession }
 
     onUpdateSession({ ...session, items: updatedItems });
     setCustomValues(prev => ({ ...prev, [itemId]: '' }));
+    // 清空自定义加值输入框
+    setCustomBonuses(prev => ({ ...prev, [itemId]: '' }));
   };
 
   const setCustomBonus = (itemId: string, value: string) => {
     setCustomBonuses(prev => ({ ...prev, [itemId]: value }));
-  };
-
-  const applyCustomBonus = (itemId: string) => {
-    const bonus = parseInt(customBonuses[itemId]) || 0;
-
-    const updatedItems = session.items.map(item => {
-      if (item.id === itemId) {
-        const updatedItem = { ...item, customBonus: bonus };
-        return calculateResult(updatedItem);
-      }
-      return item;
-    });
-
-    onUpdateSession({ ...session, items: updatedItems });
-    setCustomBonuses(prev => ({ ...prev, [itemId]: '' }));
   };
 
   const toggleAdvantage = (itemId: string) => {
@@ -274,13 +286,6 @@ export function CheckSessionManager({ session, onUpdateSession, onCloseSession }
                       value={customBonuses[item.id] || ''}
                       onChange={(e) => setCustomBonus(item.id, e.target.value)}
                     />
-                    <button
-                      onClick={() => applyCustomBonus(item.id)}
-                      disabled={!customBonuses[item.id]}
-                      className="apply-bonus-btn"
-                    >
-                      应用加值
-                    </button>
                   </div>
                   <div className="advantage-disadvantage">
                     <label>
@@ -321,26 +326,9 @@ export function CheckSessionManager({ session, onUpdateSession, onCloseSession }
                   <div className={`result ${item.result}`}>
                     {item.result === 'success' ? '成功' : '失败'}
                   </div>
-                  <div className="item-controls">
-                    <div className="custom-bonus">
-                      <input
-                        type="number"
-                        placeholder="修改加值"
-                        value={customBonuses[item.id] || ''}
-                        onChange={(e) => setCustomBonus(item.id, e.target.value)}
-                      />
-                      <button
-                        onClick={() => applyCustomBonus(item.id)}
-                        disabled={!customBonuses[item.id]}
-                        className="apply-bonus-btn"
-                      >
-                        更新加值
-                      </button>
-                    </div>
-                    <button onClick={() => resetItem(item.id)} className="reset-btn">
-                      重新检定
-                    </button>
-                  </div>
+                  <button onClick={() => resetItem(item.id)} className="reset-btn">
+                    重新检定
+                  </button>
                 </div>
               )}
             </div>
