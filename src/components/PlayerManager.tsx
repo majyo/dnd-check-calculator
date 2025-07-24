@@ -15,6 +15,7 @@ const DND_SKILLS = [
 
 export function PlayerManager({ players, onPlayersChange }: PlayerManagerProps) {
   const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newPlayer, setNewPlayer] = useState<Partial<Player>>({
     name: '',
     skills: {}
@@ -32,6 +33,37 @@ export function PlayerManager({ players, onPlayersChange }: PlayerManagerProps) 
     onPlayersChange([...players, player]);
     setNewPlayer({ name: '', skills: {} });
     setIsAdding(false);
+  };
+
+  const startEdit = (player: Player) => {
+    setEditingId(player.id);
+    setNewPlayer({
+      name: player.name,
+      skills: { ...player.skills }
+    });
+  };
+
+  const saveEdit = () => {
+    if (!newPlayer.name || !editingId) return;
+
+    const updatedPlayers = players.map(player =>
+      player.id === editingId
+        ? {
+            ...player,
+            name: newPlayer.name!,
+            skills: newPlayer.skills || {}
+          }
+        : player
+    );
+
+    onPlayersChange(updatedPlayers);
+    setEditingId(null);
+    setNewPlayer({ name: '', skills: {} });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setNewPlayer({ name: '', skills: {} });
   };
 
   const removePlayer = (id: string) => {
@@ -53,26 +85,66 @@ export function PlayerManager({ players, onPlayersChange }: PlayerManagerProps) 
       <div className="players-list">
         {players.map(player => (
           <div key={player.id} className="player-card">
-            <h3>{player.name}</h3>
-            <div className="skills-display">
-              {Object.entries(player.skills).map(([skill, modifier]) => (
-                <span key={skill} className="skill-tag">
-                  {skill}: {modifier >= 0 ? '+' : ''}{modifier}
-                </span>
-              ))}
-            </div>
-            <button onClick={() => removePlayer(player.id)} className="remove-btn">
-              删除
-            </button>
+            {editingId === player.id ? (
+              <div className="edit-player-form">
+                <input
+                  type="text"
+                  placeholder="玩家姓名"
+                  value={newPlayer.name}
+                  onChange={(e) => setNewPlayer(prev => ({ ...prev, name: e.target.value }))}
+                />
+
+                <div className="skills-form">
+                  <h4>技能修正值</h4>
+                  <div className="skills-grid">
+                    {DND_SKILLS.map(skill => (
+                      <div key={skill} className="skill-input">
+                        <label>{skill}</label>
+                        <input
+                          type="number"
+                          value={newPlayer.skills?.[skill] || ''}
+                          onChange={(e) => updateSkillModifier(skill, e.target.value)}
+                          placeholder="0"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="form-actions">
+                  <button onClick={saveEdit} className="save-btn">保存</button>
+                  <button onClick={cancelEdit} className="cancel-btn">取消</button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h3>{player.name}</h3>
+                <div className="skills-display">
+                  {Object.entries(player.skills).map(([skill, modifier]) => (
+                    <span key={skill} className="skill-tag">
+                      {skill}: {modifier >= 0 ? '+' : ''}{modifier}
+                    </span>
+                  ))}
+                </div>
+                <div className="card-actions">
+                  <button onClick={() => startEdit(player)} className="edit-btn">
+                    编辑
+                  </button>
+                  <button onClick={() => removePlayer(player.id)} className="remove-btn">
+                    删除
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         ))}
       </div>
 
-      {!isAdding ? (
+      {!isAdding && !editingId ? (
         <button onClick={() => setIsAdding(true)} className="add-btn">
           添加玩家
         </button>
-      ) : (
+      ) : isAdding ? (
         <div className="add-player-form">
           <input
             type="text"
@@ -103,7 +175,7 @@ export function PlayerManager({ players, onPlayersChange }: PlayerManagerProps) 
             <button onClick={() => setIsAdding(false)} className="cancel-btn">取消</button>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
