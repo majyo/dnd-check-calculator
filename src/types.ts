@@ -1,5 +1,35 @@
 // D&D 5e 技能检定计算器的类型定义
 
+// D&D 5e 技能列表（中文）
+export const DND_SKILLS = [
+  '运动', '杂技', '巧手', '隐匿',
+  '奥秘', '历史', '调查', '自然', '宗教',
+  '驯兽', '洞察', '医药', '察觉', '求生',
+  '欺瞒', '威吓', '表演', '说服'
+] as const;
+
+// 英文到中文的技能映射（用于兼容性）
+export const SKILL_TRANSLATION: Record<string, string> = {
+  'Athletics': '运动',
+  'Acrobatics': '杂技',
+  'Sleight of Hand': '巧手',
+  'Stealth': '隐匿',
+  'Arcana': '奥秘',
+  'History': '历史',
+  'Investigation': '调查',
+  'Nature': '自然',
+  'Religion': '宗教',
+  'Animal Handling': '驯兽',
+  'Insight': '洞察',
+  'Medicine': '医药',
+  'Perception': '察觉',
+  'Survival': '求生',
+  'Deception': '欺瞒',
+  'Intimidation': '威吓',
+  'Performance': '表演',
+  'Persuasion': '说服'
+};
+
 export interface Player {
   id: string;
   name: string;

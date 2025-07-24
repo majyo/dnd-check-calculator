@@ -1,17 +1,11 @@
 import { useState } from 'react';
 import type { Player } from '../types';
+import { DND_SKILLS } from '../types';
 
 interface PlayerManagerProps {
   players: Player[];
   onPlayersChange: (players: Player[]) => void;
 }
-
-const DND_SKILLS = [
-  'Athletics', 'Acrobatics', 'Sleight of Hand', 'Stealth',
-  'Arcana', 'History', 'Investigation', 'Nature', 'Religion',
-  'Animal Handling', 'Insight', 'Medicine', 'Perception', 'Survival',
-  'Deception', 'Intimidation', 'Performance', 'Persuasion'
-];
 
 export function PlayerManager({ players, onPlayersChange }: PlayerManagerProps) {
   const [isAdding, setIsAdding] = useState(false);

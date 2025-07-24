@@ -156,9 +156,19 @@ header h1 {
   width: 100%;
   padding: 8px;
   margin-bottom: 10px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
+  color: white;
+}
+
+.add-player-form select, .add-event-form select {
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+}
+
+.add-player-form select option, .add-event-form select option {
+  background: #2a2a2a;
   color: white;
 }
 
@@ -277,9 +287,19 @@ header h1 {
   width: 100%;
   padding: 8px;
   margin-bottom: 10px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
+  color: white;
+}
+
+.edit-player-form select, .edit-event-form select {
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+}
+
+.edit-player-form select option, .edit-event-form select option {
+  background: #2a2a2a;
   color: white;
 }
 
@@ -1065,11 +1085,16 @@ header h1 {
 
 .import-type-select {
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
   color: white;
   min-width: 150px;
+}
+
+.import-type-select option {
+  background: #2a2a2a;
+  color: white;
 }
 
 .import-controls {

@@ -1,17 +1,11 @@
 import { useState } from 'react';
 import type { SkillCheckEvent } from '../types';
+import { DND_SKILLS } from '../types';
 
 interface EventManagerProps {
   events: SkillCheckEvent[];
   onEventsChange: (events: SkillCheckEvent[]) => void;
 }
-
-const DND_SKILLS = [
-  'Athletics', 'Acrobatics', 'Sleight of Hand', 'Stealth',
-  'Arcana', 'History', 'Investigation', 'Nature', 'Religion',
-  'Animal Handling', 'Insight', 'Medicine', 'Perception', 'Survival',
-  'Deception', 'Intimidation', 'Performance', 'Persuasion'
-];
 
 export function EventManager({ events, onEventsChange }: EventManagerProps) {
   const [isAdding, setIsAdding] = useState(false);
