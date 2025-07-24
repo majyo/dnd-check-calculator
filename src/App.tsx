@@ -6,16 +6,38 @@ import { EventManager } from './components/EventManager'
 import { CheckSessionCreator } from './components/CheckSessionCreator'
 import { CheckSessionManager } from './components/CheckSessionManager'
 import { SessionHistoryManager } from './components/SessionHistoryManager'
+import { DataManager } from './components/DataManager'
 
 function App() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [events, setEvents] = useState<SkillCheckEvent[]>([]);
   const [currentSession, setCurrentSession] = useState<CheckSession | null>(null);
   const [sessionHistory, setSessionHistory] = useState<CheckSession[]>([]);
-  const [activeTab, setActiveTab] = useState<'setup' | 'session' | 'history'>('setup');
+  const [activeTab, setActiveTab] = useState<'setup' | 'session' | 'history' | 'data'>('setup');
 
-  // 从localStorage加载会话历史
+  // 从localStorage加载数据
   useEffect(() => {
+    // 加载玩家数据
+    const savedPlayers = localStorage.getItem('dnd-players');
+    if (savedPlayers) {
+      try {
+        setPlayers(JSON.parse(savedPlayers));
+      } catch (error) {
+        console.error('Failed to load players:', error);
+      }
+    }
+
+    // 加载事件数据
+    const savedEvents = localStorage.getItem('dnd-events');
+    if (savedEvents) {
+      try {
+        setEvents(JSON.parse(savedEvents));
+      } catch (error) {
+        console.error('Failed to load events:', error);
+      }
+    }
+
+    // 加载会话历史
     const savedHistory = localStorage.getItem('dnd-session-history');
     if (savedHistory) {
       try {
@@ -31,6 +53,15 @@ function App() {
       }
     }
   }, []);
+
+  // 自动保存数据到localStorage
+  useEffect(() => {
+    localStorage.setItem('dnd-players', JSON.stringify(players));
+  }, [players]);
+
+  useEffect(() => {
+    localStorage.setItem('dnd-events', JSON.stringify(events));
+  }, [events]);
 
   // 保存会话历史到localStorage
   const saveSessionHistory = (history: CheckSession[]) => {
@@ -139,6 +170,20 @@ function App() {
     saveSessionHistory(updatedHistory);
   };
 
+  // 数据导入处理函数
+  const handlePlayersImport = (importedPlayers: Player[]) => {
+    setPlayers(importedPlayers);
+  };
+
+  const handleEventsImport = (importedEvents: SkillCheckEvent[]) => {
+    setEvents(importedEvents);
+  };
+
+  const handleSessionHistoryImport = (importedSessions: CheckSession[]) => {
+    setSessionHistory(importedSessions);
+    saveSessionHistory(importedSessions);
+  };
+
   return (
     <div className="app">
       <header>
@@ -162,6 +207,12 @@ function App() {
             onClick={() => setActiveTab('history')}
           >
             历史记录 ({sessionHistory.length})
+          </button>
+          <button
+            className={activeTab === 'data' ? 'active' : ''}
+            onClick={() => setActiveTab('data')}
+          >
+            数据管理
           </button>
         </nav>
       </header>
@@ -191,13 +242,22 @@ function App() {
             onUpdateSession={handleUpdateSession}
             onCloseSession={handleCloseSession}
           />
-        ) : (
+        ) : activeTab === 'history' ? (
           <SessionHistoryManager
             sessionHistory={sessionHistory}
             currentSession={currentSession}
             onLoadSession={handleLoadSession}
             onDeleteSession={handleDeleteSession}
             onArchiveSession={handleArchiveSession}
+          />
+        ) : (
+          <DataManager
+            players={players}
+            events={events}
+            sessionHistory={sessionHistory}
+            onPlayersImport={handlePlayersImport}
+            onEventsImport={handleEventsImport}
+            onSessionHistoryImport={handleSessionHistoryImport}
           />
         )}
       </main>
