@@ -1,10 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <title>D&D 5e 技能检定计算器</title>
+    <script>
+      // GitHub Pages SPA redirect handling
+      (function() {
+        var redirect = sessionStorage.redirect;
+        delete sessionStorage.redirect;
+        if (redirect && redirect !== location.href) {
+          history.replaceState(null, null, redirect);
+        }
+        
+        // Handle redirect parameter
+        const params = new URLSearchParams(window.location.search);
+        const redirectPath = params.get('redirect');
+        if (redirectPath) {
+          history.replaceState(null, null, '/dnd-check-calculator/' + redirectPath);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
