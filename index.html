@@ -13,13 +13,6 @@
         if (redirect && redirect !== location.href) {
           history.replaceState(null, null, redirect);
         }
-        
-        // Handle redirect parameter
-        const params = new URLSearchParams(window.location.search);
-        const redirectPath = params.get('redirect');
-        if (redirectPath) {
-          history.replaceState(null, null, '/dnd-check-calculator/' + redirectPath);
-        }
       })();
     </script>
   </head>

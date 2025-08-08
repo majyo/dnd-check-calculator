@@ -6,11 +6,15 @@
   <title>D&D 5e 技能检定计算器</title>
   <script>
     // GitHub Pages SPA redirect script
-    // This script takes the current URL and redirects to the root with the path as a query parameter
     (function() {
-      var path = window.location.pathname.replace('/dnd-check-calculator/', '');
-      if (path && path !== '/') {
-        window.location.replace('/dnd-check-calculator/?redirect=' + encodeURIComponent(path));
+      var path = window.location.pathname;
+      var basePath = '/dnd-check-calculator/';
+      
+      // If we're not at the base path, redirect to index with the path
+      if (path !== basePath && path !== basePath.slice(0, -1)) {
+        var redirectPath = path.replace(basePath, '');
+        sessionStorage.redirect = basePath + redirectPath;
+        window.location.replace(basePath);
       }
     })();
   </script>
