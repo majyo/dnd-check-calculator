@@ -54,12 +54,12 @@ export function CheckSessionManager({ session, onUpdateSession, onCloseSession }
           diceRoll = rollD20();
         }
 
-        // 自动应用当前输入的自定义加值
+        // 保持当前输入的自定义加值
         const customBonus = parseInt(customBonuses[itemId]) || 0;
         const updatedItem = {
           ...item,
           diceRoll,
-          customValue: undefined,
+          customValue: undefined, // 投掷时清除自定义值
           customBonus
         };
         return calculateResult(updatedItem);
@@ -68,8 +68,7 @@ export function CheckSessionManager({ session, onUpdateSession, onCloseSession }
     });
 
     onUpdateSession({ ...session, items: updatedItems });
-    // 清空自定义加值输入框
-    setCustomBonuses(prev => ({ ...prev, [itemId]: '' }));
+    // 投掷后不清空输入框，保持用户输入状态方便反复调整
   };
 
   const rollForAll = () => {
@@ -85,12 +84,12 @@ export function CheckSessionManager({ session, onUpdateSession, onCloseSession }
           diceRoll = rollD20();
         }
 
-        // 自动应用当前输入的自定义加值
+        // 保持当前输入的自定义加值
         const customBonus = parseInt(customBonuses[item.id]) || 0;
         const updatedItem = {
           ...item,
           diceRoll,
-          customValue: undefined,
+          customValue: undefined, // 投掷时清除自定义值
           customBonus
         };
         return calculateResult(updatedItem);
@@ -99,44 +98,69 @@ export function CheckSessionManager({ session, onUpdateSession, onCloseSession }
     });
 
     onUpdateSession({ ...session, items: updatedItems });
-    // 清空所有自定义加值输入框
-    setCustomBonuses({});
+    // 批量投掷后不清空输入框，保持用户输入状态方便反复调整
   };
 
-  const setCustomValue = (itemId: string, value: string) => {
+  const handleCustomValueChange = (itemId: string, value: string) => {
     setCustomValues(prev => ({ ...prev, [itemId]: value }));
-  };
-
-  const applyCustomValue = (itemId: string) => {
-    const value = parseInt(customValues[itemId]);
-    if (isNaN(value) || value < 1 || value > 20) {
-      alert('请输入1-20之间的数值');
+    
+    // 如果输入为空，重置item状态
+    if (!value.trim()) {
+      const updatedItems = session.items.map(item => {
+        if (item.id === itemId) {
+          return {
+            ...item,
+            customValue: undefined,
+            diceRoll: undefined,
+            total: undefined,
+            result: 'pending' as const
+          };
+        }
+        return item;
+      });
+      onUpdateSession({ ...session, items: updatedItems });
       return;
     }
+    
+    const numericValue = parseInt(value);
+    if (!isNaN(numericValue) && numericValue >= 1 && numericValue <= 20) {
+      const updatedItems = session.items.map(item => {
+        if (item.id === itemId) {
+          const customBonus = parseInt(customBonuses[itemId]) || 0;
+          const updatedItem = {
+            ...item,
+            customValue: numericValue,
+            diceRoll: undefined,
+            customBonus
+          };
+          return calculateResult(updatedItem);
+        }
+        return item;
+      });
+      onUpdateSession({ ...session, items: updatedItems });
+    }
+  };
 
+  const handleCustomBonusChange = (itemId: string, value: string) => {
+    setCustomBonuses(prev => ({ ...prev, [itemId]: value }));
+    
+    // 实时计算结果
     const updatedItems = session.items.map(item => {
       if (item.id === itemId) {
-        // 自动应用当前输入的自定义加值
-        const customBonus = parseInt(customBonuses[itemId]) || 0;
+        const customBonus = parseInt(value) || 0;
         const updatedItem = {
           ...item,
-          customValue: value,
-          diceRoll: undefined,
           customBonus
         };
-        return calculateResult(updatedItem);
+        // 只有在有骰子结果或自定义值时才重新计算
+        if (item.diceRoll || item.customValue) {
+          return calculateResult(updatedItem);
+        }
+        return updatedItem;
       }
       return item;
     });
-
     onUpdateSession({ ...session, items: updatedItems });
-    setCustomValues(prev => ({ ...prev, [itemId]: '' }));
-    // 清空自定义加值输入框
-    setCustomBonuses(prev => ({ ...prev, [itemId]: '' }));
-  };
-
-  const setCustomBonus = (itemId: string, value: string) => {
-    setCustomBonuses(prev => ({ ...prev, [itemId]: value }));
   };
 
   const toggleAdvantage = (itemId: string) => {
@@ -171,27 +195,6 @@ export function CheckSessionManager({ session, onUpdateSession, onCloseSession }
     onUpdateSession({ ...session, items: updatedItems });
   };
 
-  const resetItem = (itemId: string) => {
-    const updatedItems = session.items.map(item => {
-      if (item.id === itemId) {
-        return {
-          ...item,
-          diceRoll: undefined,
-          customValue: undefined,
-          total: undefined,
-          result: 'pending' as const,
-          customBonus: undefined,
-          advantage: false,
-          disadvantage: false
-        };
-      }
-      return item;
-    });
-
-    onUpdateSession({ ...session, items: updatedItems });
-    setCustomValues(prev => ({ ...prev, [itemId]: '' }));
-    setCustomBonuses(prev => ({ ...prev, [itemId]: '' }));
-  };
 
   const resetAll = () => {
     const updatedItems = session.items.map(item => ({
@@ -257,56 +260,49 @@ export function CheckSessionManager({ session, onUpdateSession, onCloseSession }
             </div>
 
             <div className="roll-section">
-              {item.result === 'pending' ? (
-                <div className="roll-controls">
-                  <button onClick={() => rollForItem(item.id)} className="roll-btn">
-                    投掷
-                  </button>
-                  <div className="custom-roll">
-                    <input
-                      type="number"
-                      min="1"
-                      max="20"
-                      placeholder="自定义(1-20)"
-                      value={customValues[item.id] || ''}
-                      onChange={(e) => setCustomValue(item.id, e.target.value)}
-                    />
-                    <button
-                      onClick={() => applyCustomValue(item.id)}
-                      disabled={!customValues[item.id]}
-                      className="apply-custom-btn"
-                    >
-                      应用
-                    </button>
-                  </div>
-                  <div className="custom-bonus">
-                    <input
-                      type="number"
-                      placeholder="自定义加值"
-                      value={customBonuses[item.id] || ''}
-                      onChange={(e) => setCustomBonus(item.id, e.target.value)}
-                    />
-                  </div>
-                  <div className="advantage-disadvantage">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={item.advantage}
-                        onChange={() => toggleAdvantage(item.id)}
-                      />
-                      优势
-                    </label>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={item.disadvantage}
-                        onChange={() => toggleDisadvantage(item.id)}
-                      />
-                      劣势
-                    </label>
-                  </div>
+              <div className="roll-controls">
+                <button onClick={() => rollForItem(item.id)} className="roll-btn">
+                  投掷
+                </button>
+                <div className="custom-roll">
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    placeholder="自定义(1-20)"
+                    value={customValues[item.id] || ''}
+                    onChange={(e) => handleCustomValueChange(item.id, e.target.value)}
+                  />
                 </div>
-              ) : (
+                <div className="custom-bonus">
+                  <input
+                    type="number"
+                    placeholder="自定义加值"
+                    value={customBonuses[item.id] || ''}
+                    onChange={(e) => handleCustomBonusChange(item.id, e.target.value)}
+                  />
+                </div>
+                <div className="advantage-disadvantage">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={item.advantage}
+                      onChange={() => toggleAdvantage(item.id)}
+                    />
+                    优势
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={item.disadvantage}
+                      onChange={() => toggleDisadvantage(item.id)}
+                    />
+                    劣势
+                  </label>
+                </div>
+              </div>
+
+              {item.result !== 'pending' && (
                 <div className="roll-result">
                   <div className="dice-value">
                     骰子: {item.diceRoll || item.customValue}
@@ -326,11 +322,9 @@ export function CheckSessionManager({ session, onUpdateSession, onCloseSession }
                   <div className={`result ${item.result}`}>
                     {item.result === 'success' ? '成功' : '失败'}
                   </div>
-                  <button onClick={() => resetItem(item.id)} className="reset-btn">
-                    重新检定
-                  </button>
                 </div>
               )}
+
             </div>
           </div>
         ))}

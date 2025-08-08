@@ -63,8 +63,9 @@ export function CheckSessionCreator({ players, events, onCreateSession }: CheckS
     const session: CheckSession = {
       id: Date.now().toString(),
       name: sessionName || `检定会话 ${new Date().toLocaleString()}`,
-      items,
-      createdAt: new Date()
+      items: items,
+      createdAt: new Date(),
+      status: "active"
     };
 
     onCreateSession(session);
